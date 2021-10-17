@@ -3,6 +3,10 @@
 ## 介绍
 此项目是个人Demo项目，属于阉割版，在生产中已有成功实践，主要用于下游对上游五花八门的数据进行清洗。
 
+我们知道，Java Hibernate Validator 提供了注解校验POJO成员变量的方法，但是需要把POJO定义出来，对于中台或者数据汇总型的系统，如果你每个接收的参数都需要在代码里写好对应的POJO，那么在后续需要更改校验规则，或者增减变量时将会十分痛苦。
+
+这个组件适合下游系统在接入层使用它，所有的校验规则和参数定义全部配置化，易扩展。
+
 ## 校验组件可以满足哪些场景？
 
 ### 场景一：校验接口所接收的外部参数的合法性
@@ -33,4 +37,55 @@
         "axinRecommenderName":"名称"
     }
 }
+```
+## 参数校验配置文件示例
+
+这边展示一个配置文件的样子。这边是用mongodb做持久化的，这边你可以通过任何其他的方式存储，最后只要能序列化为 ValidateConfig 对象都可以。
+
+```
+//某个业务系统传参定义
+db.getCollection("AxinValidateConfig").insert( {
+    configId: "配置ID",
+    desc: "校验配置的描述",
+    fields: [
+        {
+            fieldCode: "leCityCode",
+            fieldName: "核算主体所在城市编码",
+            fieldType: "String",
+            ext: "City",
+            maxLen: 20,
+            require: true
+        },
+        {
+            fieldCode: "axinBizOrderNo",
+            fieldName: "个税订单号",
+            fieldType: "String",
+            maxLen: 50,
+            require: true
+        },
+        {
+            fieldCode: "axinAmount",
+            fieldName: "税额",
+            fieldType: "Number",
+            maxSize: 999999999999.99,
+            minSize: 0,
+            notEqual: 0,
+            decimalPlace: 2,
+            require: true
+        },
+        {
+            fieldCode: "axinBizDate",
+            fieldName: "业务发生时间",
+            fieldType: "TimeStamp",
+            require: true
+        },
+        {
+            fieldCode: "axinPayMethod",
+            fieldName: "支付方式",
+            fieldType: "String",
+            enumList:["01","02","03"],
+            require: false
+        }
+    ]
+} );
 ```
